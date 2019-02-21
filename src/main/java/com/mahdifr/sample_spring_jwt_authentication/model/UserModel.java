@@ -47,8 +47,11 @@ public class UserModel extends DateAudit {
 	
 	@NotBlank
 	@Size(max = 100)
-	@Column(name = "password", nullable = false)
+    @Column(name = "password", nullable = false)
     private String password;
+
+    @Column(name = "enabled", nullable = false)
+    private Boolean enabled = false;
     
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy="user")
     @JsonIgnore
@@ -68,6 +71,7 @@ public class UserModel extends DateAudit {
         this.username = username;
         this.email = email;
         this.password = password;
+        this.enabled = false;
     }
 
     /**
@@ -99,6 +103,12 @@ public class UserModel extends DateAudit {
      */
     public String getPassword() {
         return password;
+    }
+    /**
+     * @return the enabled
+     */
+    public Boolean getEnabled() {
+        return enabled;
     }
     /**
      * @return the userRole
@@ -136,6 +146,12 @@ public class UserModel extends DateAudit {
      */
     public void setPassword(String password) {
         this.password = password;
+    }
+    /**
+     * @param enabled the enabled to set
+     */
+    public void setEnabled(Boolean enabled) {
+        this.enabled = enabled;
     }
     /**
      * @param userRole the userRole to set

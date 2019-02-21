@@ -7,6 +7,7 @@ import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.AlgorithmMismatchException;
 import com.auth0.jwt.exceptions.InvalidClaimException;
+import com.auth0.jwt.exceptions.JWTDecodeException;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 
@@ -25,45 +26,79 @@ public class JwtTokenProvider {
 
     @Value("${app.jwtKey}")
     private String jwtKey;
-    
-    @Value("${app.jwtExpirationInMs}")
-    private int jwtExpirationInMs;
-    
+
+    @Value("${app.jwtKeyExpirationInMs}")
+    private int jwtExpirationKeyInMs;
+
+    @Value("${app.jwtVerificationKey}")
+    private String jwtVerificationKey;
+
+    @Value("${app.jwtVerificationKeyExpirationInMs}")
+    private int jwtVerificationKeyExpirationInMs;
+
     /**
-     * Method to generate token based on user id
+     * Method to generate authentication token
      * @param auth
      * @return
-      */
+     */
     public String generateToken(Authentication auth) {
         UserPrincipal userPrincipal = (UserPrincipal) auth.getPrincipal();
+        return helperGenerateToken(userPrincipal.getId(), jwtKey, jwtExpirationKeyInMs);
+    }
 
+    /**
+     * Method to generate verification Token
+     * @param userId
+     * @return
+     */
+    public String generateVerificationToken(Long userId) {
+        return helperGenerateToken(userId, jwtVerificationKey, jwtVerificationKeyExpirationInMs);
+    }
+
+    /**
+     * Helper to generate Token from user id, key, & expire time
+     */
+    public String helperGenerateToken(Long userId, String key, int expTime) {
         Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + jwtExpirationInMs);
-        return JWT.create()
-            .withSubject(Long.toString(userPrincipal.getId()))
-            .withIssuedAt(now)
-            .withExpiresAt(expiryDate)
-            .sign(Algorithm.HMAC512(jwtKey));
+        Date expiryDate = new Date(now.getTime() + expTime);
+        return JWT.create().withSubject(Long.toString(userId)).withIssuedAt(now)
+                .withExpiresAt(expiryDate).sign(Algorithm.HMAC512(key));
     }
 
     /**
      * Method to get user id from token
      * @param token
      * @return
-      */
-    public Long getUserIdFromJWT(String token) {
+     */
+    public Long getUserIdFromJWT(String token) throws JWTDecodeException {
         DecodedJWT jwt = JWT.decode(token);
         return Long.parseLong(jwt.getSubject());
     }
-    
+
     /**
-     * Method to validate token algorithm, expire time, and claim value
+     * Method to validate token
      * @param token
      * @return
-      */
+     */
     public boolean validateToken(String token) {
+        return helperValidateToken(token, jwtKey);
+    }
+
+    /**
+     * Method to validate verification token
+     * @param token
+     * @return
+     */
+    public boolean validateVerificationToken(String token) {
+        return helperValidateToken(token, jwtVerificationKey);
+    }
+
+    /**
+     * Helper to validate Token algorithm, expire time, and claim value
+     */
+    public boolean helperValidateToken(String token, String key) {
         try {
-            JWTVerifier verifier = JWT.require(Algorithm.HMAC512(jwtKey)).build();
+            JWTVerifier verifier = JWT.require(Algorithm.HMAC512(key)).build();
             verifier.verify(token);
             return true;
         } catch (AlgorithmMismatchException e) {

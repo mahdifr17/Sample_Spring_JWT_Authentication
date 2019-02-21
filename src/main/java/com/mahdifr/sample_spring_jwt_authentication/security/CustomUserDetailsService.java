@@ -16,10 +16,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
     @Autowired
-    UserRepository userRepository;
+    private UserRepository userRepository;
 
     /** 
-     * Method loaded when authenticating
+     * Method loaded when user attempt login
      */
     @Override
     @Transactional
@@ -30,15 +30,16 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         return UserPrincipal.create(user);
     }
-    
+
     /**
-     * Method used by jpa to validate user id inside token
+     * Method used by jwt to validate user id inside token.
+     * Called everytime user accessing endpoint
      * @param id
      * @return
       */
     @Transactional
     public UserDetails loadUserById(Long id) {
-        UserModel user = userRepository.findById(id).orElseThrow(
+        UserModel user = userRepository.findByIdAndEnabledTrue(id).orElseThrow(
             () -> new UsernameNotFoundException("User not found with id : " + id)
         );
 

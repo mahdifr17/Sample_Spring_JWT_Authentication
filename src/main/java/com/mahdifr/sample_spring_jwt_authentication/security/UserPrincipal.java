@@ -28,6 +28,9 @@ public class UserPrincipal implements UserDetails {
     @JsonIgnore
     private String password;
 
+    @JsonIgnore
+    private Boolean enabled;
+
     private Collection<? extends GrantedAuthority> authorities;
 
     /**
@@ -37,15 +40,16 @@ public class UserPrincipal implements UserDetails {
      * @param username
      * @param email
      * @param password
+     * @param enabled
      * @param authorities
       */
-    public UserPrincipal(Long id, String name, String username, String email, String password,
-            Collection<? extends GrantedAuthority> authorities) {
+    public UserPrincipal(Long id, String name, String username, String email, String password, Boolean enabled, Collection<? extends GrantedAuthority> authorities) {
         this.id = id;
         this.name = name;
         this.username = username;
         this.email = email;
         this.password = password;
+        this.enabled = enabled;
         this.authorities = authorities;
     }
 
@@ -59,6 +63,7 @@ public class UserPrincipal implements UserDetails {
             user.getUsername(), 
             user.getEmail(), 
             user.getPassword(),
+            user.getEnabled(),
             authorities
         );
     }
@@ -69,56 +74,47 @@ public class UserPrincipal implements UserDetails {
     public Long getId() {
         return id;
     }
-
     /**
      * @return the name
      */
     public String getName() {
         return name;
     }
-
     /**
      * @return the email
      */
     public String getEmail() {
         return email;
     }
-    
+
     @Override
     public String getUsername() {
         return username;
     }
-
     @Override
     public String getPassword() {
         return password;
     }
-
+    @Override
+    public boolean isEnabled() {
+        return enabled;
+    }
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return authorities;
     }
-
     @Override
     public boolean isAccountNonExpired() {
         return true;
     }
-
     @Override
     public boolean isAccountNonLocked() {
         return true;
     }
-
     @Override
     public boolean isCredentialsNonExpired() {
         return true;
     }
-
-    @Override
-    public boolean isEnabled() {
-        return true;
-    }
-
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
@@ -126,7 +122,6 @@ public class UserPrincipal implements UserDetails {
         UserPrincipal that = (UserPrincipal) obj;
         return Objects.equals(id, that.id);
     }
-
     @Override
     public int hashCode() {
         return Objects.hash(id);
